@@ -5,6 +5,7 @@
   "build-depends": [
   ],
   "depends": [
+    "pq:from:<native>",
     "DB::Pg",
     "LibUUID",
     "JSON::Pretty",

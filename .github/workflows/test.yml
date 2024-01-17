@@ -3,7 +3,7 @@ name: test
 on:
   push:
     branches:
-      - '*'
+      - 'master'
     tags-ignore:
       - '*'
   pull_request:
@@ -25,7 +25,7 @@ jobs:
         with:
           raku-version: ${{ matrix.raku-version }}
       - name: Install Dependencies
-        run: zef install --/test --test-depends --deps-only .
+        run: zef install --/test --test-depends --deps-only . --exclude="pq"
       - name: Install App::Prove6
         run: zef install --/test App::Prove6
       - name: Run Tests

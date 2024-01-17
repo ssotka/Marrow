@@ -1,0 +1,35 @@
+{
+  "authors": [
+    "Scott Sotka"
+  ],
+  "build-depends": [
+  ],
+  "depends": [
+    "DB::Pg",
+    "LibUUID",
+    "JSON::Pretty",
+    "JSON::Fast",
+    "Getopt::Long",
+    "Cro::HTTP::Router",
+    "Cro::HTTP::Server",
+  ],
+  "description": "Marrow (MRO) the reverse ORM. Generates code to create REST APIs for a Postgresql database.",
+  "license": "Artistic-2.0",
+  "name": "Marrow",
+  "perl": "6.d",
+  "provides": {
+    "API::Db": "lib/API/Db.rakumod", 
+    "API::Db::App" : "/lib/API/Db/App.rakumod",
+    "API::Db::Mods" : "/lib/API/Db/Mods.rakumod",
+    "API::Db::Templates" : "/lib/API/Db/Templates.rakumod"
+  },
+  "resources": [
+  ],
+  "source-url": "",
+  "tags": [
+    "REST", "DB", "API"
+  ],
+  "test-depends": [
+  ],
+  "version": "0.0.1"
+}

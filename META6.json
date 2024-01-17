@@ -5,8 +5,7 @@
   "build-depends": [
   ],
   "depends": [
-    "pq:from:<native>",
-    "DB::Pg",
+    "DB::Pg:ver<1.1>",
     "LibUUID",
     "JSON::Pretty",
     "JSON::Fast",

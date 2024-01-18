@@ -30,7 +30,7 @@ jobs:
         run: |
           git clone https://github.com/CurtTilmes/raku-dbpg.git
           cd raku-dbpg;
-          sed -i 's/ver<5>//g' META6.json;
+          sed -i '.bk' -e 's/\:ver\<5\>//g'  META6.json;
           zef install .
       - name: Install Dependencies
         run: zef install --/test --test-depends --deps-only .

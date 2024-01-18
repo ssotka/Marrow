@@ -1,7 +1,8 @@
 {
 	"authors": [
-		"github:ssotka"
+		"zef:ssotka"
 	],
+  "auth": ["zef:ssotka"],
 	"build-depends": [],
 	"depends": [
 		"DB::Pg:ver<1.1>",

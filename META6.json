@@ -5,13 +5,13 @@
   "build-depends": [
   ],
   "depends": [
-    "DB::Pg",
+    "DB::Pg:ver<1.1>",
     "LibUUID",
     "JSON::Pretty",
     "JSON::Fast",
     "Getopt::Long",
     "Cro::HTTP::Router",
-    "Cro::HTTP::Server",
+    "Cro::HTTP::Server"
   ],
   "description": "Marrow (MRO) the reverse ORM. Generates code to create REST APIs for a Postgresql database.",
   "license": "Artistic-2.0",

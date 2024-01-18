@@ -32,7 +32,16 @@ jobs:
         run: brew install libpq
       - name : Install Dependencies (windows)
         if: matrix.os == 'windows-latest'
-        run: choco install libpq-dev
+        run: choco install postgresql
+      - name: Install Dependencies (Download DB::Pg)
+        # Download DB::Pg, unpack it, edit META6.json to remove 'ver<5>' from
+        # the 'depends' section, and call zef to install it.
+        run: |
+          wget https://github.com/CurtTilmes/raku-dbpg#:~:text=with%20GitHub%20Desktop-,Download,-ZIP;
+          unzip raku-dbpg-master.zip;
+          cd raku-dbpg-master;
+          sed -i 's/ver<5>//g' META6.json;
+          zef install .
       - name: Install Dependencies
         run: zef install --/test --test-depends --deps-only .
       - name: Install App::Prove6

@@ -35,7 +35,7 @@ jobs:
           git clone https://github.com/CurtTilmes/raku-dbpg.git
           cd raku-dbpg;
           sed -i '.bk' -e 's/\:ver\<5\>//g'  META6.json;
-          zef install .
+          zef install --exclude="pq" .
       - name: Install Dependencies
         run: zef install --/test --test-depends --deps-only .
       - name: Install App::Prove6

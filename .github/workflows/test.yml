@@ -24,6 +24,9 @@ jobs:
       - uses: Raku/setup-raku@v1
         with:
           raku-version: ${{ matrix.raku-version }}
+      - name: Install Dependencies libpq-dev
+        if: matrix.os == 'macOS-latest'
+        run: brew install libpq
       - name: Install Dependencies (Download DB::Pg)
         # Download DB::Pg, unpack it, edit META6.json to remove 'ver<5>' from
         # the 'depends' section, and call zef to install it. fixed sed.

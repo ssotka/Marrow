@@ -27,6 +27,7 @@ jobs:
       - name: Install Dependencies (Download DB::Pg)
         # Download DB::Pg, unpack it, edit META6.json to remove 'ver<5>' from
         # the 'depends' section, and call zef to install it. fixed sed.
+        if: matrix.os == 'macOS-latest'
         run: |
           git clone https://github.com/CurtTilmes/raku-dbpg.git
           cd raku-dbpg;

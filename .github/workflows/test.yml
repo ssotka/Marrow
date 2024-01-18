@@ -28,9 +28,8 @@ jobs:
         # Download DB::Pg, unpack it, edit META6.json to remove 'ver<5>' from
         # the 'depends' section, and call zef to install it.
         run: |
-          wget https://github.com/CurtTilmes/raku-dbpg#:~:text=with%20GitHub%20Desktop-,Download,-ZIP;
-          unzip raku-dbpg-master.zip;
-          cd raku-dbpg-master;
+          git clone https://github.com/CurtTilmes/raku-dbpg.git
+          cd raku-dbpg;
           sed -i 's/ver<5>//g' META6.json;
           zef install .
       - name: Install Dependencies

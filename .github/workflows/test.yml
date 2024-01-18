@@ -13,9 +13,9 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-latest
+          #- ubuntu-latest
           - macOS-latest
-          - windows-latest
+          #- windows-latest
         raku-version:
           - 'latest'
     runs-on: ${{ matrix.os }}

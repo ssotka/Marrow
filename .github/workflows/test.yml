@@ -28,7 +28,7 @@ jobs:
         if: matrix.os == 'macOS-latest'
         run: |
           brew install libpq;
-          brew install libuuid;
+          brew install ossp-uuid;
       - name: Install Dependencies (Download DB::Pg)
         # Download DB::Pg, unpack it, edit META6.json to remove 'ver<5>' from
         # the 'depends' section, and call zef to install it. fixed sed.

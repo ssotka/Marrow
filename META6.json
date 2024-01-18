@@ -2,7 +2,7 @@
 	"authors": [
 		"zef:ssotka"
 	],
-  "auth": ["zef:ssotka"],
+  "auth": "zef:ssotka",
 	"build-depends": [],
 	"depends": [
 		"DB::Pg:ver<1.1>",
@@ -32,5 +32,5 @@
 		"API"
 	],
 	"test-depends": [],
-	"version": "0.0.1"
+	"version": "0.0.2"
 }

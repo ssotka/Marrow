@@ -1,4 +1,4 @@
-#!/usr/local/bin/raku
+#!/usr/bin/env raku
 
 use lib "lib";
 use DB::Pg;

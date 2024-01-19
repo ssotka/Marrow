@@ -1,6 +1,6 @@
 #!/usr/bin/env raku
 
-use lib "lib";
+#use lib "lib";
 use DB::Pg;
 use JSON::Pretty;
 use Getopt::Long;

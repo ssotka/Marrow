@@ -22,6 +22,7 @@
 		"API::Db": "lib/API/Db.rakumod",
 		"API::Db::App": "/lib/API/Db/App.rakumod",
 		"API::Db::Mods": "/lib/API/Db/Mods.rakumod",
+		"API::Db::Roles": "/lib/API/Db/Roles.rakumod",
 		"API::Db::Templates": "/lib/API/Db/Templates.rakumod"
 	},
 	"resources": [],

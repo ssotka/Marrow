@@ -1,38 +1,43 @@
 {
-	"authors": [
-		"zef:ssotka"
-	],
   "auth": "zef:ssotka",
-	"build-depends": [],
-	"depends": [
-		"DB::Pg:ver<1.1>",
-		"LibUUID",
-		"JSON::Pretty",
-		"JSON::Fast",
-		"Getopt::Long",
-		"Cro::HTTP::Router",
-		"Cro::HTTP::Server"
-	],
-	"description": "Marrow (MRO) the reverse ORM. Generates code to create REST APIs for a Postgresql database.",
-	"license": "Artistic-2.0",
-	"name": "Marrow",
-	"perl": "6.d",
-	"provides": {
-    	"mro": "bin/mro.raku",
-		"API::Db": "lib/API/Db.rakumod",
-		"API::Db::App": "lib/API/Db/App.rakumod",
-		"API::Db::Mods": "lib/API/Db/Mods.rakumod",
-		"API::Db::Roles": "lib/API/Db/Roles.rakumod",
-		"API::Db::Templates": "lib/API/Db/Templates.rakumod",
-		"API::Db::Dockerfile": "lib/API/Db/Dockerfile.rakumod"
-	},
-	"resources": [],
-	"source-url": "https://github.com/ssotka/Marrow.git",
-	"tags": [
-		"REST",
-		"DB",
-		"API"
-	],
-	"test-depends": [],
-	"version": "0.0.9"
+  "authors": [
+    "zef:ssotka"
+  ],
+  "build-depends": [
+  ],
+  "depends": [
+    "Cro::HTTP::Router",
+    "Cro::HTTP::Server",
+    "DB::Pg",
+    "JSON::Fast",
+    "LibUUID"
+  ],
+  "description": "Marrow (MRO) the reverse ORM. Generates code to create REST APIs for a Postgresql database.",
+  "license": "Artistic-2.0",
+  "name": "Marrow",
+  "perl": "6.d",
+  "provides": {
+    "API::Db": "lib/API/Db.rakumod",
+    "App": "lib/API/Db/App.rakumod",
+    "Debug": "lib/API/Db/Roles.rakumod",
+    "Dockerfile": "lib/API/Db/Dockerfile.rakumod",
+    "Mods": "lib/API/Db/Mods.rakumod",
+    "Roles": "lib/API/Db/Roles.rakumod",
+    "Templates": "lib/API/Db/Templates.rakumod",
+    "{$dbname}-routes": "lib/API/Db/App.rakumod",
+    "{$prefix}::roles::{$table}": "lib/API/Db/Roles.rakumod",
+    "{$prefix}::{$schema}-routes": "lib/API/Db/App.rakumod"
+  },
+  "resources": [
+    "DOCKERFILE.tmpl"
+  ],
+  "source-url": "https://github.com/ssotka/Marrow.git",
+  "tags": [
+    "REST",
+    "DB",
+    "API"
+  ],
+  "test-depends": [
+  ],
+  "version": "0.0.9"
 }

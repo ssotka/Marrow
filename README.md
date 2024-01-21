@@ -20,6 +20,21 @@ bin/mro.raku [--app] [--mods] [--roles] [--templates] [--list] [--dbname=<Str>] 
 --list      : List the schemas available in the DB.
 
 --prefix    : By default the Objects will name following this format {prefix}::{table}. By default prefix is the same as the schema name. 
+
+--dbname    : Name of the database to interrogate. Alternatively you may define a DB_NAME environment variable.
+
+--schema    : The database schema containing the tables. Alternatively you may define a DB_SCHEMA environment variable.
+
+--host      : The hostname of the database. Alternatively you may define this in DB_HOST environment variable.
+
+--user      : The username with which to log into the database. Alternatively you may define a DB_USER environment variable.
+
+--password  : The password of the user. You MAY define the environment variable DB_PASS, but that seems insecure.
+
+--app_host  : The hostname or number for the generated app. Can be defined in APP_HOST environment variable.
+
+--app_port  : The port on which the application will listen. Can be defined in APP_PORT environment variable.
+
 ```
 
 DESCRIPTION
@@ -31,6 +46,18 @@ Marrow (mro.raku) is an application that will, when pointed at a standards compl
 
 The code generated includes a set of object libraries and roles for those objects. The basic functionaliry for the objects are in the corresponding roles which the objects implement. User-written code should go into the object file itself. That way when the DB is altered the use may regenerate just the roles and templates to have them updated.
 
+Also emitted at this time are a Dockerfile and .env file for the application. The file will look like so:
+```
+# host generally needs to be 0.0.0.0 for docker
+APP_HOST=0.0.0.0  
+APP_PORT=2314
+DB_NAME=api_test
+DB_PASSWORD=<yeah-right>
+DB_USER=ssotka
+# This is for a database running on the current maching. YMMV.
+DB_HOST=host.docker.internal
+DB_PORT=5432
+```
 The new Cro application will be created in the results directory and will be set up in the following tree:
 
 ```
@@ -54,8 +81,6 @@ TO-DO
 * Move boilerplate to templating system (find a templating system).
 * Implement a security layer for the routes.
 * Move DB connection code to a single module in the generated app.
-* Generate a Dockerfile for generated app.
-* Let mro use ENV db connection information.
 * Set up real tests.
    
 Dependencies

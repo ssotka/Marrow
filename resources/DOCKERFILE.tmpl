@@ -1,0 +1,21 @@
+FROM rakudo-star:latest
+
+ARG APP_PORT=%%APP_PORT%%
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+    build-essential \
+    libssl-dev \
+    libpq5 \
+    libpq-dev \
+    libossp-uuid-dev \
+    git
+
+RUN zef install --/test DB::Pg Marrow
+
+COPY results /var/www
+EXPOSE $APP_PORT
+WORKDIR /var/www
+
+CMD [ "raku", "bin/%%DB_NAME%%.raku" ]

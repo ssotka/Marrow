@@ -8,6 +8,7 @@ use API::Db::App;
 use API::Db::Mods;
 use API::Db::Roles;
 use API::Db::Templates;
+use API::Db::Dockerfile;
 
 # get-options (
 #     "app" => our $app,
@@ -39,15 +40,21 @@ sub usage {
     
         --dbname=[db name] - Defaults to value of ENV Var DB_NAME.
 
-        --host=[host name] - Defaults to value of ENV Var DB_HOST.
+        --host=[db host name] - Defaults to value of ENV Var DB_HOST.
+
+        --port=[db port number] - Defaults to value of ENV Var DB_PORT.
 
         --user=[db user name] - Defaults to value of ENV Var DB_USER.
 
         --pass=[db user password] - Defaults to value of ENV Var DB_PASSWORD.
 
-        --schema=[schema name] - Defaults to 'public'.
+        --schema=[schema name] - Defaults to 'public'. Defaults to ENV Var DB_SCHEMA.
 
         --prefix=[prefix name] - Defaults to the schema name.
+
+        --app-host=[host name] - Defaults to value of ENV Var APP_HOST.
+
+        --app-port=[port number] - Defaults to value of ENV Var APP_PORT.
     
         --help - Displays this message.
     END-USAGE
@@ -101,12 +108,15 @@ sub get-tables ($schema) {
 }
 
 sub MAIN( Bool :$app=False, Bool :$mods=False, Bool :$roles=False, Bool :$templates=False, 
-          Bool :$list=False, Str :$dbname=%*ENV<DB_NAME>, Str :$host=%*ENV<DB_HOST>, Str :$user=%*ENV<DB_USER>,
-          Str :$password=%*ENV<DB_PASSWORD>, Str :$schema='public', Str :$prefix, Bool :$help=False ) {
+          Bool :$list=False, Str :$dbname=%*ENV<DB_NAME>, Str :$host=%*ENV<DB_HOST>, 
+          Str :$port=$*ENV<DB_PORT>, Str :$user=%*ENV<DB_USER>,
+          Str :$password=%*ENV<DB_PASSWORD>, Str :$schema='public', Str :$prefix = 'public', 
+          Str :$app-host=$*ENV<APP_HOST>, Str :$app-port=$*ENV<APP_PORT>, Bool :$help=False ) {
 
     our $conninfo = join " ",
         ('dbname=' ~ ($dbname || die("missing DB_NAME in environment"))),
         ("host=$host"),
+        ("port=$port"),
         ("user=$user"),
         ("password=$password");
     $pg = DB::Pg.new(:$conninfo);
@@ -125,9 +135,12 @@ sub MAIN( Bool :$app=False, Bool :$mods=False, Bool :$roles=False, Bool :$templa
     my $meta-conn = q/my $conninfo = join " ",
         ('dbname=' ~ (%*ENV<DB_NAME> || die("missing DB_NAME in environment"))),
         ("host=$_" with %*ENV<DB_HOST>),
+        ("port=$_" with %*ENV<DB_PORT>),
         ("user=$_" with %*ENV<DB_USER>),
         ("password=$_" with %*ENV<DB_PASSWORD>);/;
 
     make_roles($schema, $prefix, $meta-conn, %tables) if $roles;
-    make_templates( $schema, $prefix, %*ENV<APP_HOST>, %*ENV<APP_PORT>, %tables ) if $templates;
+    make_templates( $schema, $prefix, $app-host, $app-port, %tables ) if $templates;
+    make_dockerfile( $dbname, $app-port ) if $app;
+    make_envfile( $dbname, $host, $port, $user, $password, $app-host, $app-port ) if $app;
 }

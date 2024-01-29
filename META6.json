@@ -9,6 +9,7 @@
     "Cro::HTTP::Router",
     "Cro::HTTP::Server",
     "DB::Pg",
+    "DB::SQLite",
     "JSON::Fast",
     "LibUUID"
   ],
@@ -18,12 +19,14 @@
   "perl": "6.d",
   "provides": {
     "API::Db": "lib/API/Db.rakumod",
+    "API::Db::Conv": "lib/API/Db/Conv.rakumod",
     "App": "lib/API/Db/App.rakumod",
     "Debug": "lib/API/Db/Roles.rakumod",
     "Dockerfile": "lib/API/Db/Dockerfile.rakumod",
     "Mods": "lib/API/Db/Mods.rakumod",
     "Roles": "lib/API/Db/Roles.rakumod",
     "Templates": "lib/API/Db/Templates.rakumod",
+    "X::API::DB::Conv::Unknown": "lib/API/Db/Conv.rakumod",
     "{$dbname}-routes": "lib/API/Db/App.rakumod",
     "{$prefix}::roles::{$table}": "lib/API/Db/Roles.rakumod",
     "{$prefix}::{$schema}-routes": "lib/API/Db/App.rakumod"
@@ -39,5 +42,5 @@
   ],
   "test-depends": [
   ],
-  "version": "0.0.9"
+  "version": "0.1.0"
 }

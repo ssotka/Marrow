@@ -4,11 +4,14 @@
 use DB::Pg;
 use JSON::Pretty;
 use Getopt::Long;
+use API::Db;
+use API::Db::Conv;
 use API::Db::App;
 use API::Db::Mods;
 use API::Db::Roles;
 use API::Db::Templates;
 use API::Db::Dockerfile;
+
 
 # get-options (
 #     "app" => our $app,
@@ -61,75 +64,45 @@ sub usage {
     exit;
 }
 
-sub list-schemas-and-exit {
-    # list the schemas
-    say "Schemas : ";
-    our $i = 0;
-    our %schemas;
-    for $pg.query('select schema_name from information_schema.schemata').hashes -> %h {
-        
-        for %h.kv -> $key, $value {
-            say  ++$i ~ ' : ' ~ ($value || '<NULL>');
-            %schemas{$i} = $value;
-            #say "setting $i to " ~ %schemas<$i>;
-        }
-    }
-    exit;
-    #our $schema = 0;
-    #while ($i < $schema || $schema < 1) {
-        #say "Choose a schema number : ";
-        #$schema = Int(get);
-        #say "Reading schema : $schema => " ~ %schemas{$schema};
-    #}
-}
 
-sub check-schema-name ($schema) {
-    my $schema-exists = False;
-    for $pg.query( 'select schema_name from information_schema.schemata where schema_name=$1', $schema ) -> $result {
-        if $result eq $schema {
-            $schema-exists = True;
-        }
-    }
-    die "No Such Schema $schema\nUse '--list' to show valid schemas." unless $schema-exists;
-}
-
-sub get-tables ($schema) {
-    our %tables;
-    for $pg.query('select table_name from information_schema.tables where table_type = $1 and table_schema = $2', 
-        'BASE TABLE', $schema ).hashes -> %h {
-        for %h.kv -> $key, $value {
-            for $pg.query('select a.column_name, a.data_type, a.column_default, a.is_nullable, c.table_name as references_table, c.column_name as references_column from information_schema.columns a left join information_schema.key_column_usage b on (b.column_name=a.column_name and b.table_name=a.table_name and b.constraint_name~$1) left join information_schema.constraint_column_usage c on (c.constraint_name=b.constraint_name)where a.table_name=$2 and a.table_schema=$3',
-                '_fkey$', $value, $schema).hashes -> %c {
-                push %tables{$value}, %c;
-            }
-        }
-    }
-    return %tables;
-}
 
 sub MAIN( Bool :$app=False, Bool :$mods=False, Bool :$roles=False, Bool :$templates=False, 
-          Bool :$list=False, Str :$dbname=%*ENV<DB_NAME>, Str :$host=%*ENV<DB_HOST>, 
+          Bool :$list=False, Str :$db-type, Str :$dbname=%*ENV<DB_NAME>, Str :$host=%*ENV<DB_HOST>, 
           Str :$port=$*ENV<DB_PORT>, Str :$user=%*ENV<DB_USER>,
           Str :$password=%*ENV<DB_PASSWORD>, Str :$schema='public', Str :$prefix = 'public', 
           Str :$app-host=$*ENV<APP_HOST>, Str :$app-port=$*ENV<APP_PORT>, Bool :$help=False ) {
 
-    our $conninfo = join " ",
-        ('dbname=' ~ ($dbname || die("missing DB_NAME in environment"))),
-        ("host=$host"),
-        ("port=$port"),
-        ("user=$user"),
-        ("password=$password");
-    $pg = DB::Pg.new(:$conninfo);
+    # our $conninfo = join " ",
+    #     ('dbname=' ~ ($dbname || die("missing DB_NAME in environment"))),
+    #     ("host=$host"),
+    #     ("port=$port"),
+    #     ("user=$user"),
+    #     ("password=$password");
+    # $pg = DB::Pg.new(:$conninfo);
 
-    usage()                     if $help;
-    list-schemas-and-exit       if $list;
-    check-schema-name ($schema) if $schema ne 'public';
+    my $db = API::Db.new(db-type => $db-type, dbname => $dbname, host => $host, port => $port, 
+                        user => $user, password => $password);
+    say $db.query-hash.keys;
+    my $db-type-conv = API::Db::Conv.new(db => $db-type);
 
-    our %tables = get-tables( $schema );
+    usage()                         if $help;
+    $db.list-schemas-and-exit       if $list;
+    $db.check-schema-name($schema)  if $schema ne 'public';
+
+    our $db-base-name;
+    if $db-type eq 'sqlite' {
+        my $f = $dbname.IO;
+        $db-base-name = ($f.IO.extension("")).IO.basename;
+    }
+
+    say "db-base-name: $db-base-name";
+
+    our %tables = $db.get-tables( $schema );
     say to-json %tables;
     unless defined($prefix) { $prefix = $schema.tc }
     
-    make_app($dbname, $schema, $prefix, %tables) if $app;
+    make_db_conn( $prefix );
+    make_app($db-base-name, $db-type-conv, $schema, $prefix, %tables) if $app;
     make_mods($schema, $prefix, %tables) if $mods;
 
     my $meta-conn = q/my $conninfo = join " ",
@@ -139,8 +112,8 @@ sub MAIN( Bool :$app=False, Bool :$mods=False, Bool :$roles=False, Bool :$templa
         ("user=$_" with %*ENV<DB_USER>),
         ("password=$_" with %*ENV<DB_PASSWORD>);/;
 
-    make_roles($schema, $prefix, $meta-conn, %tables) if $roles;
-    make_templates( $schema, $prefix, $app-host, $app-port, %tables ) if $templates;
-    make_dockerfile( $dbname, $app-port ) if $app;
-    make_envfile( $dbname, $host, $port, $user, $password, $app-host, $app-port ) if $app;
+    make_roles($schema, $db-type-conv, $prefix, $db-type, $meta-conn, %tables) if $roles;
+    make_templates( $schema, $prefix, $db-type, $app-host, $app-port, %tables ) if $templates;
+    make_dockerfile( $db-base-name, $app-port ) if $app;
+    make_envfile( $dbname, $db-type, $host, $port, $user, $password, $app-host, $app-port ) if $app;
 }

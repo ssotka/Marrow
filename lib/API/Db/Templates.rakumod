@@ -1,6 +1,6 @@
 unit module Templates;
 
-sub make_templates ( $schema, $prefix, $app-host, $app-port, %tables ) is export {
+sub make_templates ( $schema, $prefix, $db-type, $app-host, $app-port, %tables ) is export {
     my $dir = "results/resources/templates/html/index.html".IO.dirname;
     $dir.IO.mkdir unless $dir.IO.e;
     my $tfh = "results/resources/templates/html/index.html".IO.open(:w);
@@ -181,6 +181,7 @@ sub make_templates ( $schema, $prefix, $app-host, $app-port, %tables ) is export
     END
     
     for %tables.keys.sort -> $table {
+        next if $table eq 'sqlite_sequence';
         $tfh.say: '         <li><a onclick="change_page(\''~ $table ~ '\')">' ~ $table ~ '</a></li>';
     }
     $tfh.say: q:to/END1/;
@@ -191,12 +192,13 @@ sub make_templates ( $schema, $prefix, $app-host, $app-port, %tables ) is export
     END1
 
     for %tables.kv -> $table, @columns {
+        next if $table eq 'sqlite_sequence';
         $tfh.say: qq|       <div id='$table' style='display: none;'>|;
         for @columns -> %col {
             $tfh.say: '           <div id="' ~ $table ~ ':' ~ %col<column_name> ~ '"><span style="display:inline-block;width:180px;">' 
                 ~ %col<column_name> ~ ' :</span> <input id=\'' ~ $table ~ ':' ~ %col<column_name> ~ ':box' ~ '\' class="' ~ $table ~ 
                 '" size="50" type=text></input>';
-            if %col<data_type> eq 'uuid' and %col<column_name> ne 'id' and defined(%col<references_table>) {
+            if %col<column_name> ne 'id' and defined(%col<references_table>) {
                 $tfh.say: '<button id=lookup style="position: relative; left: 2%;" class="action-button" onclick="lookup(\'' ~ %col<references_table> ~ '\',\'' ~ $table ~ ':' ~ %col<column_name> ~ ':box\')">Lookup</button>';
             }
              $tfh.say: '           </div>';

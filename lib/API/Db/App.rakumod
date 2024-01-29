@@ -1,19 +1,8 @@
 unit module App;
-our %types = 'uuid'                       => 'UUID',
-            'boolean'                     => 'Bool',
-            'text'                        => 'Str',
-            'integer'                     => 'Int',
-            'timestamp without time zone' => 'DateTime',
-            'numeric'                     => 'Real',
-            'money'                       => 'Real',
-            'email'                       => 'email',
-            'product_format'              => 'Str',
-            'USER-DEFINED'                => 'Str',
-            'date'                        => 'Date',
-            'character varying'           => 'Str',
-            ;
+use API::Db::Conv;
+
             
-sub make_app (Str $dbname, Str $schema, Str $prefix, %tables ) is export {
+sub make_app (Str $dbname, $db-type-conv, Str $schema, Str $prefix, %tables ) is export {
 
     # Create a file for user defined routes
     'results/lib'.IO.mkdir unless 'results/lib'.IO.e;
@@ -59,6 +48,7 @@ sub make_app (Str $dbname, Str $schema, Str $prefix, %tables ) is export {
 
     # Create GET POST PUT routes for each table
     for %tables.kv -> $table, @columns {
+        next if $table eq 'sqlite_sequence';
         $srh.say: qq:to/END/;
 
                 use {$prefix}::{$table};
@@ -98,12 +88,12 @@ sub make_app (Str $dbname, Str $schema, Str $prefix, %tables ) is export {
 
         for @columns -> %col {
             next if %col<column_name> eq 'id' | 'created' | 'last_modified';
-            #say %col<column_name> ~ ' ' ~ %col<data_type> ~ ' -> ' ~ %types{%col<data_type>};
-            if %types{%col<data_type>} eq 'Str' {
+            #say %col<column_name> ~ ' ' ~ %col<data_type> ~ ' -> ' ~ $db-type-conv.type(%col<data_type>.lc.subst(/'(' \d+ ')'/, ""));
+            if $db-type-conv.type( %col<data_type>.lc.subst(/'(' \d+ ')'/, "") ) eq 'Str' {
                 $srh.say: '             $' ~ $table ~ '.' ~ %col<column_name> ~ '( %args<' ~ %col<column_name> ~ '> );';
             }
-            elsif defined %types{%col<data_type>}  {
-                $srh.say: '             $' ~ $table ~ '.' ~ %col<column_name> ~ '( ' ~ %types{%col<data_type>} ~ '.new( %args<' ~ %col<column_name> ~ '> ) );';
+            elsif defined $db-type-conv.type( %col<data_type>.lc.subst(/'(' \d+ ')'/, "") )  {
+                $srh.say: '             $' ~ $table ~ '.' ~ %col<column_name> ~ '( ' ~ $db-type-conv.type(%col<data_type>.lc.subst(/'(' \d+ ')'/, "")) ~ '.new( %args<' ~ %col<column_name> ~ '> ) );';
             }
             else{
                 $srh.say: '             $' ~ $table ~ '.' ~ %col<column_name> ~ '( %args<' ~ %col<column_name> ~ '> );';
@@ -123,12 +113,12 @@ sub make_app (Str $dbname, Str $schema, Str $prefix, %tables ) is export {
         END
         for @columns -> %col {
             next if %col<column_name> eq 'created' | 'last_modified';
-            #say %col<column_name> ~ ' ' ~ %col<data_type> ~ ' -> ' ~ %types{%col<data_type>};
-            if %types{%col<data_type>} eq 'Str' {
+            #say %col<column_name> ~ ' ' ~ %col<data_type> ~ ' -> ' ~ $db-type-conv.type(%col<data_type>);
+            if $db-type-conv.type( %col<data_type>.lc.subst(/'(' \d+ ')'/, "") ) eq 'Str' {
                 $srh.say: '             $' ~ $table ~ '.' ~ %col<column_name> ~ '( %args<' ~ %col<column_name> ~ '> );';
             }
-            elsif defined %types{%col<data_type>} {
-                $srh.say: '             $' ~ $table ~ '.' ~ %col<column_name> ~ '( ' ~ %types{%col<data_type>} ~ '.new( %args<' ~ %col<column_name> ~ '> ) );';
+            elsif defined $db-type-conv.type(%col<data_type>) {
+                $srh.say: '             $' ~ $table ~ '.' ~ %col<column_name> ~ '( ' ~ $db-type-conv.type(%col<data_type>) ~ '.new( %args<' ~ %col<column_name> ~ '> ) );';
             }
             else{
                 $srh.say: '             $' ~ $table ~ '.' ~ %col<column_name> ~ '( %args<' ~ %col<column_name> ~ '> );';

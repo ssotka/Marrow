@@ -1,13 +1,13 @@
 unit module Dockerfile;
 
 sub make_dockerfile($dbname, $app-port) is export {
-    my $dockerfile = "resources/Dockerfile.tmpl".IO.slurp;
+    my $dockerfile = "resources/DOCKERFILE.tmpl".IO.slurp;
     my $dockerfile-out = "Dockerfile".IO.open(:w);
     $dockerfile-out.say: $dockerfile.subst( '%%DB_NAME%%', $dbname, :g).subst( '%%APP_PORT%%', $app-port, :g);
     $dockerfile-out.close;
 }
 
-sub make_envfile( Str $dbname, Str $host , Str $port, Str $user, 
+sub make_envfile( Str $dbname, Str $db-type, Str $host , Str $port, Str $user, 
                   Str $pass, Str $app-host , Str $app-port ) is export {
     my $envfile = ".env".IO.open(:w);
     my $final-host = $host;
@@ -22,6 +22,7 @@ sub make_envfile( Str $dbname, Str $host , Str $port, Str $user,
 
     $envfile.say: qq:to/EOF/;
         DB_NAME=$dbname
+        DB_TYPE=$db-type
         DB_HOST=$final-host
         DB_PORT=$port
         DB_USER=$user

@@ -11,7 +11,7 @@
     "DB::Pg",
     "DB::SQLite",
     "JSON::Fast",
-    "LibUUID",
+    "LibUUID"
   ],
   "description": "Marrow (MRO) the reverse ORM. Generates code to create REST APIs for a Postgresql database.",
   "license": "Artistic-2.0",
@@ -42,5 +42,5 @@
   ],
   "test-depends": [
   ],
-  "version": "0.0.9"
+  "version": "0.1.0"
 }

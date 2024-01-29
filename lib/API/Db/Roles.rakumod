@@ -1,25 +1,57 @@
 unit module Roles;
 
-# This is the type map from postgresql to Raku
-our %types = 'uuid'                       => 'UUID',
-            'boolean'                     => 'Bool',
-            'text'                        => 'Str',
-            'integer'                     => 'Int',
-            'timestamp without time zone' => 'DateTime',
-            'numeric'                     => 'Real',
-            'money'                       => 'Real',
-            'email'                       => 'email',
-            'product_format'              => 'Str',
-            'USER-DEFINED'                => 'Str',
-            'date'                        => 'Date',
-            'character varying'           => 'Str',
-            ;
+use API::Db::Conv;
 
-sub make_roles ( $schema, $prefix, $meta_conn, %tables ) is export {
+sub make_db_conn ( $prefix ) is export {
+    my $dir = "results/lib/{$prefix}".IO.dirname;
+    $dir.IO.mkdir unless $dir.IO.e;
+    my $fh = "results/lib/{$prefix}/db.rakumod".IO.open(:w);
+    $fh.say: q:to/END/;
+    use DB::Pg;
+    use DB::SQLite;
+    use LibUUID;
+    use Debug;
+    END
+    $fh.say: "role {$prefix}::db \{";
+    $fh.say: q:to/END/;
+        has $.dbh is rw;
+        has $.conninfo is rw;
+
+        method connect() {
+            $.conninfo = join " ",
+            ("dbname=%*ENV<DB_NAME>"),
+            ("host=%*ENV<DB_HOST>"),
+            ("port=%*ENV<DB_PORT>"),
+            ("user=%*ENV<DB_USER>"),
+            ("password=%*ENV<DB_PASS>");
+
+            given %*ENV<DB_TYPE> {
+                when 'pg'     { $.dbh = DB::Pg.new(conninfo => self.conninfo); }
+                when 'sqlite' { $.dbh = DB::SQLite.new(filename => %*ENV<DB_NAME>); }
+                when 'mysql'  { die "MySQL not yet supported"; }
+                when 'oracle' { die "Oracle not yet supported"; }
+            }
+        }
+
+        method get-db-handle() is export {
+            self.connect() unless $.dbh;
+            return $.dbh;
+        }
+    }
+    END
+    $fh.close;
+}
+
+sub make_roles ( $schema, $db-type-conv, $prefix, $db-type, $meta_conn, %tables ) is export {
 
     for %tables.kv -> $table, @columns {
+        next if $table eq 'sqlite_sequence';
+
+        my $table-full-name = $db-type eq 'sqlite' ?? $table !! "{$schema}.{$table}";
+
         my $dir = "results/lib/{$prefix}/roles/{$table}.rakumod".IO.dirname;
         $dir.IO.mkdir unless $dir.IO.e;
+
         #my $fh = "results/lib/{$prefix}/{$table}.rakumod".IO.open(:w);
         my $fh = "results/lib/{$prefix}/roles/{$table}.rakumod".IO.open(:w);
 
@@ -27,16 +59,17 @@ sub make_roles ( $schema, $prefix, $meta_conn, %tables ) is export {
             use DB::Pg;
             use LibUUID;
             use Debug;
-            $meta_conn
-            my \$db = DB::Pg.new(:\$conninfo);
+            use {$prefix}::db;
             
-            role {$prefix}::roles::{$table} does Debug \{
+            role {$prefix}::roles::{$table} does {$prefix}::db does Debug \{
                 has Str \$.table = "{$schema}.{$table}";
             END
         for @columns -> %col {
-            $fh.say: '   has ' ~ (%types{ %col<data_type> } || 'Str') ~ ' $.' ~ %col<column_name> ~ ' is rw;';
+            $fh.say: '   has ' ~ ($db-type-conv.type( %col<data_type>.lc.subst(/'(' \d+ ')'/, "") ) || 'Str') ~ ' $.' ~ %col<column_name> ~ ' is rw;';
             #$fh.say: '   has Bool $._' ~ %col<column_name> ~ '_chgd is rw = False;';
         }
+        $fh.say: "\n";
+        $fh.say: '   my $db;';
         $fh.say: '   has %!changed_fields = (';
         for @columns -> %col {
             $fh.say: '      ' ~ %col<column_name> ~ ' => False,';
@@ -55,10 +88,11 @@ sub make_roles ( $schema, $prefix, $meta_conn, %tables ) is export {
 
         $fh.say: '   submethod BUILD(:$id) {';
         $fh.say: '      try {';
-        $fh.say: '         for $db.query(\'select * from ' ~ $table ~ ' where id=$1\',$id).hashes -> %h {';
+        $fh.say: '         $db = self.get-db-handle();';
+        $fh.say: '         for $db.query(\'select * from ' ~ $table-full-name ~ ' where id=$1\',$id).hashes -> %h {';
         for @columns -> %col {
-            if %types{%col<data_type>} ne 'Rat' {
-                $fh.say: '            $!' ~ %col<column_name> ~ ' = %h<' ~ %col<column_name>~ '>;';
+            if $db-type-conv.type( %col<data_type>.lc.subst(/'(' \d+ ')'/, "") ) ne 'Rat' {
+                $fh.say: '            $!' ~ %col<column_name> ~ ' = %h<' ~ %col<column_name>~ '>.' ~ ($db-type-conv.type( %col<data_type>.lc.subst(/'(' \d+ ')'/, "") ) || 'Str') ~ ';';
             }
             else { 
                 $fh.say: '            $!' ~ %col<column_name> ~ ' = %h<' ~ %col<column_name>~ '>.Rat;';
@@ -66,13 +100,13 @@ sub make_roles ( $schema, $prefix, $meta_conn, %tables ) is export {
         }
         $fh.say: '         }';
         $fh.say: '      } ';
-        $fh.say: '      if $! { self.debug("Failed lookup of ' ~ $table ~ ': $id"); die "Failed lookup of ' ~ $table ~ ': $id : $!"; } ';
+        $fh.say: '      if $! { self.debug("Failed lookup of ' ~ $table ~ ': $id - $!"); die "Failed lookup of ' ~ $table ~ ': $id : $!"; } ';
         #$fh.say: '      say $*ERR: "Finished BUILD";';
         $fh.say: '   }';
         for @columns -> %col {
             $fh.say: "\n";
             $fh.say: '   multi method ' ~ %col<column_name> ~ '() { $!' ~ %col<column_name> ~ ' };';
-            $fh.say: '   multi method ' ~ %col<column_name> ~ '( ' ~ (%types{ %col<data_type> } || 'Str') ~
+            $fh.say: '   multi method ' ~ %col<column_name> ~ '( ' ~ ($db-type-conv.type( %col<data_type>.lc.subst(/'(' \d+ ')'/, "") ) || 'Str') ~
                     ' $' ~ %col<column_name> ~ ' ) { ';
             if %col<column_name> eq 'id' {
                 $fh.say: '      if ! defined($!id) {';
@@ -110,7 +144,7 @@ sub make_roles ( $schema, $prefix, $meta_conn, %tables ) is export {
                 if \$!id \{
                     my \@upd_list;
                     my \@upd_args;
-                    my \$q = "UPDATE {$schema}.{$table} set ";
+                    my \$q = "UPDATE {$table-full-name} set ";
                     my \$index=1;
         END
         my $index = 1;
@@ -118,7 +152,7 @@ sub make_roles ( $schema, $prefix, $meta_conn, %tables ) is export {
             $fh.say: qq:to/END/;
                     if \%!changed_fields<{$col<column_name>}> \{
                         \@upd_list.push( '{$col<column_name>} = \$' ~ \$index++ );
-                        \@upd_args.push( \$!{$col<column_name>} );
+                        \@upd_args.push( \$!{$col<column_name>}.{ $db-type-conv.type( $col<data_type>.lc.subst(/'(' \d+ ')'/, "") ) } );
                     }
             END
         }
@@ -134,13 +168,13 @@ sub make_roles ( $schema, $prefix, $meta_conn, %tables ) is export {
                             \%!changed_fields\{ \$key \} = False;
                         \}
                     \}
-                    if \$! \{ self.debug("Failed update of {$table}: \$!id"); die "Failed update of {$table}: \$!id"; \}
+                    if \$! \{ self.debug("Failed update of {$table}: \$!id - \$!"); die "Failed update of {$table}: \$!id -- \$!"; \}
                 \}
                 else \{
                     my \@upd_list;
                     my \@vals;
                     my \@upd_args;
-                    my \$q = "INSERT into {$schema}.{$table} ";
+                    my \$q = "INSERT into {$table-full-name} ";
                     my \$index=1;
         END
 
@@ -149,7 +183,7 @@ sub make_roles ( $schema, $prefix, $meta_conn, %tables ) is export {
                     if \%!changed_fields<{$col<column_name>}> \{
                         \@upd_list.push( '{$col<column_name>}' );
                         \@vals.push( '\$' ~ \$index++ );
-                        \@upd_args.push( \$!{$col<column_name>} );
+                        \@upd_args.push( \$!{$col<column_name>}.{ $db-type-conv.type( $col<data_type>.lc.subst(/'(' \d+ ')'/, "") ) } );
                     }
             END
         }

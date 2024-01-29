@@ -40,7 +40,7 @@ bin/mro.raku [--app] [--mods] [--roles] [--templates] [--list] [--dbname=<Str>] 
 DESCRIPTION
 ===========
 
-Marrow (mro.raku) is an application that will, when pointed at a standards compliant SQL relational database (at the moment only Postgresql is supported) will interrogate the the given schema's tables (defaults to public) and their relationships. It will then generate a Cro application to serve APIs to manipulate those tables. 
+Marrow (mro.raku) is an application that will, when pointed at a standards compliant SQL relational database which supports the Information Schema (at the moment only Postgresql and SQLite are supported) will interrogate the the given schema's tables (defaults to public) and their relationships. It will then generate a Cro application to serve APIs to manipulate those tables. 
 
 ```Note: At the moment mro requires all the tables to have a field called "id" as the primary key. It has been tested with "id" values of integer and uuid.```
 
@@ -61,7 +61,7 @@ DB_PORT=5432
 The new Cro application will be created in the results directory and will be set up in the following tree:
 
 ```
-resources
+results
     bin
         <dbname>.raku (Cro application)
     lib

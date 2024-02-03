@@ -3,9 +3,9 @@ unit module Roles;
 use API::Db::Conv;
 
 sub make_db_conn ( $prefix ) is export {
-    my $dir = "results/lib/{$prefix}".IO.dirname;
-    $dir.IO.mkdir unless $dir.IO.e;
-    my $fh = "results/lib/{$prefix}/db.rakumod".IO.open(:w);
+    my $dir = "results/lib/{$prefix}";
+    $dir.IO.mkdir ; #unless $dir.IO.e;
+    my $fh = "results/lib/{$prefix}/db.rakumod".IO.open :w;#|| die "Could not open file: {$!}";
     $fh.say: q:to/END/;
     use DB::Pg;
     use DB::SQLite;

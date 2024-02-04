@@ -1,7 +1,7 @@
 unit module Dockerfile;
 
 sub make_dockerfile($dbname, $app-port) is export {
-    my $dockerfile = "resources/DOCKERFILE.tmpl".IO.slurp;
+    my $dockerfile = %?RESOURCES<DOCKERFILE.tmpl>.IO.slurp;
     my $dockerfile-out = "Dockerfile".IO.open(:w);
     $dockerfile-out.say: $dockerfile.subst( '%%DB_NAME%%', $dbname, :g).subst( '%%APP_PORT%%', $app-port, :g);
     $dockerfile-out.close;

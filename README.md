@@ -43,7 +43,7 @@ Also emitted at this time are a Dockerfile and .env file for the application. Th
 APP_HOST=0.0.0.0  
 APP_PORT=2314
 DB_NAME=api_test
-DB_PASSWORD=<yeah-right>
+DB_PASS=<yeah-right>
 DB_USER=ssotka
 # This is for a database running on the current maching. YMMV.
 DB_HOST=host.docker.internal

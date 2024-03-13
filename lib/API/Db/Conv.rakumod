@@ -76,6 +76,7 @@ class API::Db::Conv {
                         'USER-DEFINED'                => 'Str',
                         'date'                        => 'Str',
                         'character varying'           => 'Str',
+                        'real'                        => 'Real',
                         ;
             }
             default {

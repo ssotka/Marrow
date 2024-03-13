@@ -3,6 +3,21 @@ NAME
 
 Marrow - MRO, the opposite of ORM.
 
+Dependencies
+============
+This app requires libpq and libuuid (ossp-uuid) be installed. On MacOS this can be done using brew, however afterward you must be sure that the library will be found by zef. On my own machine I had to create soft links from /usr/local/lib to the brew installed libraries.
+
+`macOS`: DB::Pg has trouble installing on MacOS. This is because the libpq on MacOS that is installed by Homebrew does not match the version defined by the module. This problem can be worked around by doing the following:
+
+```
+> git clone https://github.com/CurtTilmes/raku-dbpg.git
+> cd raku-dbpg;
+> sed -i '.bk' -e 's/\:ver\<5\>//g'  META6.json;
+> zef install --exclude="pq" .
+```
+
+You may then install this application and things should work.
+
 SYNOPSIS
 ========
 
@@ -27,6 +42,11 @@ Usage:
     --app-port=<Str>    The port number for the app - env APP_PORT.
     --help              Displays this message. [default: False]
 ```
+
+example:
+```bin/mro.raku  --app --mods --roles --templates --db-type sqlite --dbname=t/api_test.db --host=localhost --user=ssotka --password=<password> --prefix=public --schema=public --app-host=localhost --app-port=2314 --port=5432```
+
+In this example dbname is actually a sqlite db file. In this case, although we defined all the other db related args, their values are irrelevant.
 
 DESCRIPTION
 ===========
@@ -80,20 +100,7 @@ TO-DO
 * Move boilerplate to templating system (find a templating system).
 * Implement a security layer for the routes.
    
-Dependencies
-============
-This app requires libpq and libuuid (ossp-uuid) be installed.
 
-`macOS`: DB::Pg has trouble installing on MacOS. This is because the libpq on MacOS that is installed by Homebrew does not match the version defined by the module. This problem can be worked around by doing the following:
-
-```
-> git clone https://github.com/CurtTilmes/raku-dbpg.git
-> cd raku-dbpg;
-> sed -i '.bk' -e 's/\:ver\<5\>//g'  META6.json;
-> zef install --exclude="pq" .
-```
-
-You may then install this application and things should work.
 
 AUTHOR
 ======

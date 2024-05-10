@@ -35,8 +35,8 @@ jobs:
           brew install libpq;
           brew install ossp-uuid;
           cd /usr/lib;
-          ln -s /opt/homebrew/lib/libuuid.dylib;
-          ln -s /opt/homebrew/lib/libpq.dylib;
+          sudo ln -s /opt/homebrew/lib/libuuid.dylib;
+          sudo ln -s /opt/homebrew/lib/libpq.dylib;
       - name: Install Dependencies (windows only)
         if: matrix.os == 'windows-latest'
         run: |

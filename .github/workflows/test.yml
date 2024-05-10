@@ -34,9 +34,7 @@ jobs:
         run: |
           brew install libpq;
           brew install ossp-uuid;
-          cd /usr/lib;
-          sudo ln -s /opt/homebrew/lib/libuuid.dylib;
-          sudo ln -s /opt/homebrew/lib/libpq.dylib;
+          export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
       - name: Install Dependencies (windows only)
         if: matrix.os == 'windows-latest'
         run: |
@@ -48,6 +46,7 @@ jobs:
         # the 'depends' section, and call zef to install it. fixed sed.
         if: matrix.os == 'macOS-latest'
         run: |
+          export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
           git clone https://github.com/CurtTilmes/raku-dbpg.git
           cd raku-dbpg;
           sed -i '.bk' -e 's/\:ver\<5\>//g'  META6.json;

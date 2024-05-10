@@ -110,7 +110,7 @@ Scott Sotka <ssotka@gmail.com>
 COPYRIGHT AND LICENSE
 =====================
 
-Copyright 2024 Scott Sotka
+Copyright 2024 Scott A. Sotka
 
 This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
 
